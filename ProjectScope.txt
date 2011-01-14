@@ -1,0 +1,2 @@
+This project API will be high capable to give location infomation to the client. 
+These API will use all mode of GPS connection available in Android.
