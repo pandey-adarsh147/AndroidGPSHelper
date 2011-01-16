@@ -9,7 +9,6 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.os.Handler;
 
 import com.google.android.maps.GeoPoint;
 
@@ -20,7 +19,7 @@ public class MyLocation implements LocationListener {
 	private Queue<Runnable> mRunnableFirstFixQueue = new LinkedList<Runnable>();
 	private Queue<Runnable> mRunnable = new LinkedList<Runnable>();
 	
-	private String[] providerStrings = new String[] { LocationManager.GPS_PROVIDER,
+	private String[] PROVIDERS_NAME = new String[] { LocationManager.GPS_PROVIDER,
 			LocationManager.NETWORK_PROVIDER };
 
 	public MyLocation(Context context) {
@@ -46,11 +45,33 @@ public class MyLocation implements LocationListener {
 	public synchronized void enableMyLocation() {
 		LocationManager locationManager = (LocationManager) mContext
 				.getSystemService(Context.LOCATION_SERVICE);
-		locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, this);
 
-		Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-		if(location != null) {
-			onLocationChanged(location);
+		Location[] candidates = new Location[PROVIDERS_NAME.length];
+		int count = 0;
+		for (String provider : PROVIDERS_NAME) {
+			mIsMyLocationEnabled = true;
+			locationManager.requestLocationUpdates(provider, 0, 0, this);
+			Location location = locationManager.getLastKnownLocation(provider);
+			if(location == null) {
+				continue;
+			}
+			
+			candidates[count++] = location;
+		}
+		
+		Location firstFix = null;
+		for (int i = 0; i < count; i++) {
+			firstFix = candidates[i];
+		}
+		if(firstFix != null) {
+			onLocationChanged(firstFix);
+		}
+	}
+	
+	public void disableMyLocation() {
+		if(mIsMyLocationEnabled) {
+			LocationManager locationManager = (LocationManager) mContext.getSystemService(Context.LOCATION_SERVICE);
+			locationManager.removeUpdates(this);
 		}
 	}
 	

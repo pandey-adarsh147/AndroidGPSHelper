@@ -13,6 +13,7 @@ public class MyLocationTestActivity extends Activity {
 	private Handler mHandler = new Handler();
 	private TextView mLatitude;
 	private TextView mLongitude;
+	private MyLocation mMyLocation;
 	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
@@ -22,24 +23,34 @@ public class MyLocationTestActivity extends Activity {
         mLatitude = (TextView) findViewById(R.id.latitude);
         mLongitude = (TextView) findViewById(R.id.longitude);
         
-        final MyLocation myLocation = new MyLocation(this);
+        mMyLocation = new MyLocation(this);
         Runnable runnable = new Runnable() {
         	@Override
         	public void run() {
         		mHandler.post(new Runnable() {
 					@Override
 					public void run() {
-						GeoPoint geoPoint = myLocation.getMyLocation();
+						GeoPoint geoPoint = mMyLocation.getMyLocation();
 						mLatitude.setText(geoPoint.getLatitudeE6()+"");
 						mLongitude.setText(geoPoint.getLongitudeE6()+"");
 					}
 				});
         	}
         };
-        myLocation.runOnFirstFix(runnable);
-        myLocation.runOnLocationUpdate(runnable);
-        myLocation.enableMyLocation();
+        mMyLocation.runOnFirstFix(runnable);
+        mMyLocation.runOnLocationUpdate(runnable);
+        mMyLocation.enableMyLocation();
     }
 	
+	@Override
+	protected void onResume() {
+		mMyLocation.enableMyLocation();
+		super.onResume();
+	}
 	
+	@Override
+	protected void onPause() {
+		mMyLocation.disableMyLocation();
+		super.onPause();
+	}
 }
